@@ -68,6 +68,7 @@ public class EmployeeController {
      */
     @PostMapping("/logout")
     public Result<String> logout() {
+        log.info("员工退出");
         return Result.success();
     }
 
@@ -79,6 +80,7 @@ public class EmployeeController {
      */
     @PostMapping
     public Result addEmployee(@RequestBody EmployeeDTO employeeDTO) {
+        log.info("新增员工{}", employeeDTO);
         employeeService.addEmployee(employeeDTO);
         return Result.success();
     }
@@ -90,7 +92,21 @@ public class EmployeeController {
      */
     @GetMapping("/page")
     public Result<PageResult> pageQuery(EmployeePageQueryDTO employeePageQueryDTO) {
+        log.info("分页查询员工{}", employeePageQueryDTO);
         PageResult pageResult=employeeService.pageQuery(employeePageQueryDTO);
         return Result.success(pageResult);
+    }
+
+    /**
+     * 更新员工启用状态
+     * @param status
+     * @param id
+     * @return
+     */
+    @PostMapping("/status/{status}")
+    public Result updateStatus(@PathVariable Integer status,Long id) {
+        log.info("更新员工{}启用状态{}",id, status);
+        employeeService.updateStatus(status,id);
+        return Result.success();
     }
 }
