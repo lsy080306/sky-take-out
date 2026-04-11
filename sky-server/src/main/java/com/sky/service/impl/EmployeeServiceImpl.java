@@ -107,6 +107,11 @@ public class EmployeeServiceImpl implements EmployeeService {
         return new PageResult(page.getTotal(),page.getResult());
     }
 
+    /**
+     * 更新员工状态
+     * @param status
+     * @param id
+     */
     @Override
     public void updateStatus(Integer status, Long id) {
         Employee emp=new Employee();
@@ -115,6 +120,17 @@ public class EmployeeServiceImpl implements EmployeeService {
         emp.setUpdateTime(LocalDateTime.now());
         emp.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateEmpInfo(emp);
+    }
+
+    /**
+     * 根据id回显员工信息
+     * @param id
+     * @return
+     */
+    @Override
+    public Employee getEmpById(Long id) {
+        Employee emp=employeeMapper.getEmpById(id);
+        return emp;
     }
 
 }
