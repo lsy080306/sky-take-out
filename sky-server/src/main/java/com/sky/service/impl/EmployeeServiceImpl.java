@@ -8,6 +8,7 @@ import com.sky.context.BaseContext;
 import com.sky.dto.EmployeeDTO;
 import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
+import com.sky.dto.PasswordEditDTO;
 import com.sky.entity.Employee;
 import com.sky.exception.*;
 import com.sky.mapper.EmployeeMapper;
@@ -141,6 +142,21 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void updateEmp(EmployeeDTO employeeDTO) {
         Employee emp=new Employee();
         BeanUtils.copyProperties(employeeDTO,emp);
+        emp.setUpdateTime(LocalDateTime.now());
+        emp.setUpdateUser(BaseContext.getCurrentId());
+        employeeMapper.updateEmpInfo(emp);
+    }
+
+    /**
+     * 修改密码
+     * @param passwordEditDTO
+     */
+    @Override
+    public void editPassword(PasswordEditDTO passwordEditDTO) {
+        Employee  emp=new Employee();
+        emp.setId(BaseContext.getCurrentId());
+        BeanUtils.copyProperties(passwordEditDTO,emp);
+        emp.setPassword(DigestUtils.md5DigestAsHex(passwordEditDTO.getNewPassword().getBytes()));
         emp.setUpdateTime(LocalDateTime.now());
         emp.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateEmpInfo(emp);
