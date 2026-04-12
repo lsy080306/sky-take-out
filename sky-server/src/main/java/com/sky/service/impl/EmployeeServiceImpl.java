@@ -2,6 +2,7 @@ package com.sky.service.impl;
 
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
+import com.sky.annotation.AutoFill;
 import com.sky.constant.MessageConstant;
 import com.sky.constant.StatusConstant;
 import com.sky.context.BaseContext;
@@ -10,6 +11,7 @@ import com.sky.dto.EmployeeLoginDTO;
 import com.sky.dto.EmployeePageQueryDTO;
 import com.sky.dto.PasswordEditDTO;
 import com.sky.entity.Employee;
+import com.sky.enumeration.OperationType;
 import com.sky.exception.*;
 import com.sky.mapper.EmployeeMapper;
 import com.sky.result.PageResult;
@@ -85,13 +87,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         emp.setStatus(StatusConstant.ENABLE);
         //默认密码123456
         emp.setPassword(DigestUtils.md5DigestAsHex("123456".getBytes()));
-        //创建时间和修改时间
-        emp.setCreateTime(LocalDateTime.now());
-        emp.setUpdateTime(LocalDateTime.now());
-        //创建人与修改人
-        emp.setCreateUser(BaseContext.getCurrentId());
-        emp.setUpdateUser(BaseContext.getCurrentId());
-
         employeeMapper.addEmployee(emp);
     }
 
@@ -118,8 +113,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         Employee emp=new Employee();
         emp.setStatus(status);
         emp.setId(id);
-        emp.setUpdateTime(LocalDateTime.now());
-        emp.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateEmpInfo(emp);
     }
 
@@ -142,8 +135,6 @@ public class EmployeeServiceImpl implements EmployeeService {
     public void updateEmp(EmployeeDTO employeeDTO) {
         Employee emp=new Employee();
         BeanUtils.copyProperties(employeeDTO,emp);
-        emp.setUpdateTime(LocalDateTime.now());
-        emp.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateEmpInfo(emp);
     }
 
@@ -157,8 +148,6 @@ public class EmployeeServiceImpl implements EmployeeService {
         emp.setId(BaseContext.getCurrentId());
         BeanUtils.copyProperties(passwordEditDTO,emp);
         emp.setPassword(DigestUtils.md5DigestAsHex(passwordEditDTO.getNewPassword().getBytes()));
-        emp.setUpdateTime(LocalDateTime.now());
-        emp.setUpdateUser(BaseContext.getCurrentId());
         employeeMapper.updateEmpInfo(emp);
     }
 
