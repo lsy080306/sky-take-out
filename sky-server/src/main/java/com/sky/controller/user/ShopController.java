@@ -21,11 +21,11 @@ public class ShopController {
      * 获取营业状态
      * @return
      */
-    @GetMapping
+    @GetMapping("/status")
     public Result getShopStatus() {
         log.info("获取营业状态");
         ValueOperations ops = redisTemplate.opsForValue();
-        Integer status= (Integer) ops.get(KEY);
+        Integer status = Integer.parseInt((String) ops.get(KEY));
         return Result.success(status);
     }
 }

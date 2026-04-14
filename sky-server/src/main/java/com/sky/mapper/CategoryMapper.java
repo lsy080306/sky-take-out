@@ -24,7 +24,6 @@ public interface CategoryMapper {
     @AutoFill(OperationType.UPDATE)
     void updateCategoryInfo(Category category);
 
-    @Select("select * from category where type=#{type}")
     List<Category> getCategoryByType(Long type);
 
     @Delete("delete from category where id=#{id}")
