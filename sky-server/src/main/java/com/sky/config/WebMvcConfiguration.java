@@ -36,52 +36,73 @@ public class WebMvcConfiguration extends WebMvcConfigurationSupport {
 
     /**
      * 注册自定义拦截器
+     * 用于配置JWT令牌管理员和用户的拦截器
+
+     * 管理员拦截器处理/admin/**路径的请求，但排除登录接口
+     * 用户拦截器处理/user/**路径的请求，但排除登录接口和商店状态查询接口
      *
-     * @param registry
+     * @param registry 拦截器注册器，用于添加和配置拦截器
      */
     protected void addInterceptors(InterceptorRegistry registry) {
         log.info("开始注册自定义拦截器...");
         registry.addInterceptor(jwtTokenAdminInterceptor)
-                .addPathPatterns("/admin/**")
-                .excludePathPatterns("/admin/employee/login");
+                .addPathPatterns("/admin/**")  // 拦截所有管理员相关路径
+                .excludePathPatterns("/admin/employee/login");  // 排除管理员登录接口
         registry.addInterceptor(jwtTokenUserInterceptor)
-                .addPathPatterns("/user/**")
-                .excludePathPatterns("/user/user/login")
-                .excludePathPatterns("/user/shop/status");
+                .addPathPatterns("/user/**")  // 拦截所有用户相关路径
+                .excludePathPatterns("/user/user/login")  // 排除用户登录接口
+                .excludePathPatterns("/user/shop/status");  // 排除商店状态查询接口
     }
 
     /**
      * 通过knife4j生成接口文档
-     * @return
+
+     * 配置Swagger接口文档，包括标题、版本和描述等信息
+     * 指定controller包路径，自动生成该路径下所有接口的文档
+     *
+     * @return Docket对象，包含Swagger文档的所有配置信息
      */
     @Bean
     public Docket docket() {
+        // 创建API信息对象，包含文档标题、版本和描述
         ApiInfo apiInfo = new ApiInfoBuilder()
                 .title("苍穹外卖项目接口文档")
                 .version("2.0")
                 .description("苍穹外卖项目接口文档")
                 .build();
+        // 创建Docket对象，配置Swagger文档
         Docket docket = new Docket(DocumentationType.SWAGGER_2)
-                .apiInfo(apiInfo)
-                .select()
-                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))
-                .paths(PathSelectors.any())
+                .apiInfo(apiInfo)  // 设置API信息
+                .select()  // 启动选择器
+                .apis(RequestHandlerSelectors.basePackage("com.sky.controller"))  // 指定controller包路径
+                .paths(PathSelectors.any())  // 匹配所有路径
                 .build();
         return docket;
     }
 
     /**
      * 设置静态资源映射
-     * @param registry
+
+     * 配置静态资源访问路径，用于访问Swagger UI界面
+     * 将/doc.html映射到classpath:/META-INF/resources/
+     * 将/webjars/**映射到classpath:/META-INF/resources/webjars/
+     *
+     * @param registry 资源处理器注册器，用于配置静态资源映射
      */
     protected void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 配置Swagger UI的访问路径
         registry.addResourceHandler("/doc.html").addResourceLocations("classpath:/META-INF/resources/");
+        // 配置webjars资源的访问路径
         registry.addResourceHandler("/webjars/**").addResourceLocations("classpath:/META-INF/resources/webjars/");
     }
 
     /**
      * 指定时间格式
-     * @param converters
+
+     * 扩展消息转换器，配置JSON序列化和反序列化的规则
+     * 使用JacksonObjectMapper自定义日期格式等配置
+     *
+     * @param converters 消息转换器列表，用于处理HTTP请求和响应的转换
      */
     protected void extendMessageConverters(List<HttpMessageConverter<?>> converters) {
         log.info("扩展消息转换器...");

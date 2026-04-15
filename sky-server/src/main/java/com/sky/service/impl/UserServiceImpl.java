@@ -39,6 +39,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserLoginVO userLogin(UserLoginDTO userLoginDTO) {
+        //获取响应结果
         Map<String, String> map=new HashMap<>();
         map.put("appid",weChatProperties.getAppid());
         map.put("secret",weChatProperties.getSecret());
@@ -48,6 +49,7 @@ public class UserServiceImpl implements UserService {
 
         JSONObject jsonObject=JSON.parseObject(json);
 
+        //获取openid
         String openId=jsonObject.getString("openid");
 
         if(openId==null||openId.isEmpty()){
@@ -60,6 +62,7 @@ public class UserServiceImpl implements UserService {
                     .createTime(LocalDateTime.now()).build();
             userMapper.addUser(user);
         }
+        //获取jwt令牌
         Map<String,Object> claim=new HashMap<>();
         claim.put(JwtClaimsConstant.USER_ID,user.getId());
         String token=JwtUtil.createJWT(jwtProperties.getUserSecretKey(),jwtProperties.getUserTtl(),claim);

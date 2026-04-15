@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 
 /**
  * jwt令牌校验的拦截器
+ * 用于验证管理员用户的JWT令牌，确保请求的安全性
  */
 @Component
 @Slf4j
