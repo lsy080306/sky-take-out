@@ -30,4 +30,5 @@ public class UserController {
         UserLoginVO userLoginVO=userService.userLogin(userLoginDTO);
         return Result.success(userLoginVO);
     }
+
 }
