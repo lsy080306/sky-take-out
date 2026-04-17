@@ -26,4 +26,13 @@ public interface OrderMapper {
     Orders getOrdersById(Long id);
 
     Page<OrderVO> conditionSearch(OrdersPageQueryDTO ordersPageQueryDTO);
+
+    @Select("select count(*) from orders where status = 2")
+    Integer getToBeConfirmedNum();
+
+    @Select("select count(*) from orders where status = 3")
+    Integer getConfirmedNum();
+
+    @Select("select count(*) from orders where status = 4")
+    Integer getDeliveryInProgressNum();
 }

@@ -3,10 +3,7 @@ package com.sky.service.impl;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
-import com.sky.dto.OrdersConfirmDTO;
-import com.sky.dto.OrdersPageQueryDTO;
-import com.sky.dto.OrdersPaymentDTO;
-import com.sky.dto.OrdersSubmitDTO;
+import com.sky.dto.*;
 import com.sky.entity.AddressBook;
 import com.sky.entity.OrderDetail;
 import com.sky.entity.Orders;
@@ -18,6 +15,7 @@ import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
+import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +26,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -185,6 +185,7 @@ public class OrderServiceImpl implements OrderService {
         log.info("取消订单：{}", id);
         Orders orders=orderMapper.getOrdersById(id);
         orders.setStatus(Orders.CANCELLED);
+        orders.setPayStatus(Orders.REFUND);
         orders.setCancelTime(LocalDateTime.now());
         orderMapper.updateOrders(orders);
     }
@@ -264,5 +265,76 @@ public class OrderServiceImpl implements OrderService {
         orders.setStatus(Orders.CONFIRMED);
         orderMapper.updateOrders(orders);
     }
+
+    /**
+     * 拒绝订单
+     * @param ordersRejectionDTO
+     * @return
+     */
+    @Override
+    public void rejectOrder(OrdersRejectionDTO ordersRejectionDTO) {
+        log.info("拒绝订单");
+        Orders orders=orderMapper.getOrdersById(ordersRejectionDTO.getId());
+        orders.setRejectionReason(ordersRejectionDTO.getRejectionReason());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setPayStatus(Orders.REFUND);
+        orderMapper.updateOrders(orders);
+    }
+
+    /**
+     * 订单发货
+     * @param id
+     */
+    @Override
+    public void delivery(Long id) {
+        log.info("订单发货");
+        Orders orders=orderMapper.getOrdersById(id);
+        orders.setStatus(Orders.DELIVERY_IN_PROGRESS);
+        orderMapper.updateOrders(orders);
+    }
+
+    /**
+     * 商家取消订单
+     * @param ordersCancelDTO
+     */
+    @Override
+    public void adminCancelOrder(OrdersCancelDTO ordersCancelDTO) {
+        log.info("商家取消订单");
+        Orders orders=orderMapper.getOrdersById(ordersCancelDTO.getId());
+        orders.setCancelReason(ordersCancelDTO.getCancelReason());
+        orders.setStatus(Orders.CANCELLED);
+        orders.setPayStatus(Orders.REFUND);
+        orderMapper.updateOrders(orders);
+    }
+
+    /**
+     * 订单完成
+     * @param id
+     */
+    @Override
+    public void completeOrder(Long id) {
+        log.info("订单完成");
+        Orders orders=orderMapper.getOrdersById(id);
+        orders.setStatus(Orders.COMPLETED);
+        orderMapper.updateOrders(orders);
+    }
+
+    /**
+     * 订单统计
+     * @return
+     */
+    @Override
+    public OrderStatisticsVO statistics() {
+        log.info("订单统计");
+        Integer toBeConfirmedNum=orderMapper.getToBeConfirmedNum();
+        Integer confirmedNum=orderMapper.getConfirmedNum();
+        Integer deliveryInProgressNum=orderMapper.getDeliveryInProgressNum();
+        OrderStatisticsVO orderStatisticsVO=new OrderStatisticsVO();
+        orderStatisticsVO.setToBeConfirmed(toBeConfirmedNum);
+        orderStatisticsVO.setConfirmed(confirmedNum);
+        orderStatisticsVO.setDeliveryInProgress(deliveryInProgressNum);
+        return orderStatisticsVO;
+    }
+
 
 }
