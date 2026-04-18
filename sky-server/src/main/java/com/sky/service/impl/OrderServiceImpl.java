@@ -1,5 +1,6 @@
 package com.sky.service.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.sky.context.BaseContext;
@@ -15,6 +16,7 @@ import com.sky.mapper.*;
 import com.sky.result.PageResult;
 import com.sky.result.Result;
 import com.sky.service.OrderService;
+import com.sky.socketserver.WebSocketServer;
 import com.sky.vo.OrderStatisticsVO;
 import com.sky.vo.OrderSubmitVO;
 import com.sky.vo.OrderVO;
@@ -30,9 +32,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * 订单服务实现类
@@ -57,9 +57,7 @@ public class OrderServiceImpl implements OrderService {
     private OrderDetailMapper orderDetailMapper;
     // 自动注入用户数据访问层
     @Autowired
-    private UserMapper userMapper;
-    @Autowired
-    private OrderService orderService;
+    private WebSocketServer webSocketServer;
 
     /**
      * 提交订单的方法
@@ -130,6 +128,13 @@ public class OrderServiceImpl implements OrderService {
             orders.setPayMethod(ordersPaymentDTO.getPayMethod());
             orders.setCheckoutTime(LocalDateTime.now());
             orderMapper.updateOrders(orders);
+
+            HashMap<String, Object> hashMap=new HashMap<>();
+            hashMap.put("type",1);
+            hashMap.put("orderId",orders.getId());
+            hashMap.put("content","订单号:"+orders.getNumber());
+            String json= JSON.toJSONString(hashMap);
+            webSocketServer.sendToAllClient(json);
         }else {
             throw new OrderBusinessException("订单不存在");
         }
@@ -334,6 +339,35 @@ public class OrderServiceImpl implements OrderService {
         orderStatisticsVO.setConfirmed(confirmedNum);
         orderStatisticsVO.setDeliveryInProgress(deliveryInProgressNum);
         return orderStatisticsVO;
+    }
+
+    /**
+     * 订单提醒功能实现类
+
+ * 该方法用于处理用户催单请求，通过WebSocket向所有客户端发送订单提醒消息
+     * @param id 订单ID，用于查询具体订单信息
+     */
+    @Override
+    public void reminder(Long id) {
+    // 记录用户催单日志
+        log.info("用户催单");
+    // 根据订单ID查询订单信息
+        Orders orders=orderMapper.getOrdersById(id);
+    // 判断订单是否存在
+        if(orders!=null){
+        // 创建HashMap用于存储提醒信息
+            HashMap<String, Object> map=new HashMap<>();
+        // 设置消息类型为2（订单提醒）
+            map.put("type",2);
+        // 设置订单ID
+            map.put("orderId",orders.getId());
+        // 设置提醒内容，包含订单号
+            map.put("content:","订单号:"+orders.getNumber());
+        // 将HashMap转换为JSON字符串
+            String json=JSON.toJSONString(map);
+        // 通过WebSocket向所有客户端发送提醒消息
+            webSocketServer.sendToAllClient(json);
+        }
     }
 
 
