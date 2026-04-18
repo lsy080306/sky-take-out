@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.sky.mapper.ReportMapper">
+
+    <select id="turnoverStatistics" resultType="java.lang.Double">
+        select sum(orders.amount) from orders where order_time &gt; #{begin} and orders.order_time &lt; #{end} and status=#{status}
+    </select>
+    <select id="getAmountOfUser" resultType="java.lang.Long">
+        select count(*) from user where create_time &gt; #{begin} and user.create_time &lt; #{end}
+    </select>
+    <select id="getOrderAmount" resultType="java.lang.Long">
+        select count(*) from orders where order_time &gt; #{begin} and orders.order_time &lt; #{end}
+    </select>
+    <select id="getCompletedOrder" resultType="java.lang.Long">
+        select count(*) from orders where order_time &gt; #{begin} and orders.order_time &lt; #{end} and status=#{status}
+    </select>
+    <select id="getTop10" resultType="com.sky.vo.SaleVO">
+        SELECT od.name, sum(od.number) AS saleAmount
+        FROM orders o
+        JOIN order_detail od ON o.id = od.order_id
+        WHERE o.order_time &gt; #{begin}
+        AND o.order_time &lt; #{end}
+        AND o.status = #{status}
+        GROUP BY od.name
+        ORDER BY saleAmount DESC
+        LIMIT 10;
+    </select>
+</mapper>

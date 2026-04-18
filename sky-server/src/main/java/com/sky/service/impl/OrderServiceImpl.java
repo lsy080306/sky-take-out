@@ -107,6 +107,7 @@ public class OrderServiceImpl implements OrderService {
         for(ShoppingCart shoppingCart:shoppingCartList){
             OrderDetail orderDetail=new OrderDetail();
             BeanUtils.copyProperties(shoppingCart,orderDetail);
+            orderDetail.setNumber(shoppingCart.getNumber());
             orderDetail.setOrderId(orders.getId());
             list.add(orderDetail);
 
