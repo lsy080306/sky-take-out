@@ -18,3 +18,7 @@ sky:
   wechat:
     appid: wxc0667fca6a16d120
     secret: 6d700cb744f2a9b3e262698fa4f761ac
+  shop:
+    address: 江西省南昌市青山湖区上海北路
+  baidu:
+    ak: CB3flrn6z4iaXhTZ8gS9JVDKIjhqpuKC
