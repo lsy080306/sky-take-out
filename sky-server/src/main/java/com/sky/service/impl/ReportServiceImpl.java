@@ -8,15 +8,28 @@ import com.sky.dto.UserReportDTO;
 import com.sky.entity.Orders;
 import com.sky.mapper.ReportMapper;
 import com.sky.service.ReportService;
+import com.sky.service.WorkspaceService;
+import com.sky.vo.BusinessDataVO;
 import com.sky.vo.OrderReportVO;
 import com.sky.vo.SalesTop10ReportVO;
 import com.sky.vo.TurnoverReportVO;
 import com.sky.vo.UserReportVO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang.StringUtils;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.DataFormat;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.servlet.ServletOutputStream;
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URLEncoder;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -29,6 +42,9 @@ public class ReportServiceImpl implements ReportService {
 
     @Autowired
     private ReportMapper reportMapper;
+
+    @Autowired
+    private WorkspaceService workspaceService;
 
     /**
      * 营业额统计方法
@@ -232,5 +248,106 @@ public class ReportServiceImpl implements ReportService {
     // 将销售数量列表转换为字符串形式
         vo.setNumberList(StringUtils.join(numberList,","));
         return vo; // 返回统计结果
+    }
+
+    /**
+     * 导出运营数据报表
+     * @param response
+     */
+    @Override
+    public void exportBusinessData(HttpServletResponse response) throws IOException {
+
+        // ================= 1. 时间 =================
+        LocalDate dateBegin = LocalDate.now().minusDays(30);
+        LocalDate dateEnd = LocalDate.now().minusDays(1);
+
+        // ================= 2. 查询数据 =================
+        BusinessDataVO businessDataVO = workspaceService.getBusinessData(
+                LocalDateTime.of(dateBegin, LocalTime.MIN),
+                LocalDateTime.of(dateEnd, LocalTime.MAX)
+        );
+
+        // ================= 3. 读取模板 =================
+        InputStream in = this.getClass().getClassLoader()
+                .getResourceAsStream("template/运营数据报表模板.xlsx");
+
+        if (in == null) {
+            throw new RuntimeException("模板文件不存在");
+        }
+
+        XSSFWorkbook excel = new XSSFWorkbook(in);
+        XSSFSheet sheet = excel.getSheetAt(0);
+
+        // ================= 4. 时间 =================
+        XSSFRow row = sheet.getRow(1);
+        setCell(row, 1, "时间：" + dateBegin + " 至 " + dateEnd);
+
+        // ================= 5. 概览 =================
+        // 第4行（index=3）
+        row = sheet.getRow(3);
+        setCell(row, 2, businessDataVO.getTurnover());                         // 营业额（C列）
+        setCell(row, 4, businessDataVO.getOrderCompletionRate());   // 完成率（E列）
+        setCell(row, 6, businessDataVO.getNewUsers());                          // 新增用户（G列）
+
+        // 第5行（index=4）
+        row = sheet.getRow(4);
+        setCell(row, 2, businessDataVO.getValidOrderCount());                   // 有效订单
+        setCell(row, 4, businessDataVO.getUnitPrice());                         // 客单价
+
+        // ================= 6. 明细 =================
+        int rownum = 7; // ⚠️ 从第7行开始（避免覆盖表头）
+
+        for (LocalDate date = dateEnd; !date.isBefore(dateBegin); date = date.plusDays(-1)) {
+
+            LocalDateTime beginTime = LocalDateTime.of(date, LocalTime.MIN);
+            LocalDateTime endTime = LocalDateTime.of(date, LocalTime.MAX);
+
+            BusinessDataVO dailyData = workspaceService.getBusinessData(beginTime, endTime);
+
+            row = sheet.getRow(rownum);
+            if (row == null) {
+                row = sheet.createRow(rownum);
+            }
+
+            setCell(row, 1, date.toString());                                   // 日期（B列）
+            setCell(row, 2, dailyData.getTurnover());                           // 营业额
+            setCell(row, 3, dailyData.getValidOrderCount());                    // 有效订单
+            setCell(row, 4, dailyData.getOrderCompletionRate());    // 完成率
+            setCell(row, 5, dailyData.getUnitPrice());                          // 客单价
+            setCell(row, 6, dailyData.getNewUsers());                           // 新增用户
+
+            rownum++;
+        }
+
+        // ================= 7. 响应头 =================
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setCharacterEncoding("utf-8");
+
+        String fileName = URLEncoder.encode("运营数据报表", "UTF-8");
+        response.setHeader("Content-Disposition", "attachment;filename=" + fileName + ".xlsx");
+
+        // ================= 8. 输出 =================
+        ServletOutputStream out = response.getOutputStream();
+        excel.write(out);
+
+        // ================= 9. 关闭 =================
+        out.close();
+        excel.close();
+        in.close();
+    }
+
+    private void setCell(XSSFRow row, int index, Object value) {
+        XSSFCell cell = row.getCell(index);
+        if (cell == null) {
+            cell = row.createCell(index);
+        }
+
+        if (value == null) {
+            cell.setCellValue("");
+        } else if (value instanceof Number) {
+            cell.setCellValue(((Number) value).doubleValue());
+        } else {
+            cell.setCellValue(value.toString());
+        }
     }
 }

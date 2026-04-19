@@ -26,4 +26,13 @@
         ORDER BY saleAmount DESC
         LIMIT 10;
     </select>
+    <select id="getToBeConfirmedOrder" resultType="java.lang.Integer">
+        select count(*) from orders where order_time &gt; #{begin} and orders.order_time &lt; #{end} and status=#{status}
+    </select>
+    <select id="getConfirmedOrder" resultType="java.lang.Integer">
+        select count(*) from orders where order_time &gt; #{begin} and orders.order_time &lt; #{end} and status=#{status}
+    </select>
+    <select id="getCanceledOrder" resultType="java.lang.Integer">
+        select count(*) from orders where order_time &gt; #{begin} and orders.order_time &lt; #{end} and status=#{status}
+    </select>
 </mapper>

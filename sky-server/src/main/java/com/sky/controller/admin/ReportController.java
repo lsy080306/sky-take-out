@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.time.LocalDate;
 
 @RestController
@@ -69,5 +71,19 @@ public class ReportController {
         log.info("菜品销量统计");
         SalesTop10ReportVO salesTop10ReportVO = reportService.orderDetailStatistics(begin,end);
         return Result.success(salesTop10ReportVO);
+    }
+
+    /**
+     * 导出运营数据报表
+     * @param response
+     */
+    @GetMapping("/export")
+    public void export(HttpServletResponse response) throws IOException {
+        log.info("导出运营数据报表");
+        // 设置响应头
+        response.setContentType("application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+        response.setHeader("Content-Disposition", "attachment; filename=business_data.xlsx");
+        // 调用service导出报表
+        reportService.exportBusinessData(response);
     }
 }

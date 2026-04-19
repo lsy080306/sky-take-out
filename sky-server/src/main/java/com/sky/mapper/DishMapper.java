@@ -12,6 +12,7 @@ import org.apache.ibatis.annotations.Options;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface DishMapper {
@@ -33,4 +34,10 @@ public interface DishMapper {
     void updateDishInfo(Dish dish);
 
     void deleteDish(List<Long> ids);
+
+    @Select("select count(*) from dish where status = #{enable}")
+    Integer getEnableNum(Integer enable);
+
+    @Select("select count(*) from dish where status = #{disable}")
+    Integer getDisableNum(Integer disable);
 }

@@ -11,6 +11,7 @@ import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
+import java.util.Map;
 
 @Mapper
 public interface SetmealMapper {
@@ -33,4 +34,10 @@ public interface SetmealMapper {
     List<DishItemVO> getDishItemBySetmealId(Long setmealId);
 
     List<Setmeal> list(Setmeal setmeal);
+
+    @Select("select count(*) from setmeal where status = #{enable}")
+    Integer getEnableNum(Integer enable);
+
+    @Select("select count(*) from setmeal where status = #{disable}")
+    Integer getDisableNum(Integer disable);
 }

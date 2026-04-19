@@ -21,4 +21,10 @@ public interface ReportMapper {
     Long getCompletedOrder(OrderAmountDTO orderAmountDTO);
 
     List<SaleVO> getTop10(SaleDTO saleDTO);
+
+    Integer getToBeConfirmedOrder(OrderAmountDTO orderAmountDTO);
+
+    Integer getConfirmedOrder(OrderAmountDTO orderAmountDTO);
+
+    Integer getCanceledOrder(OrderAmountDTO orderAmountDTO);
 }
